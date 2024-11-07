@@ -9,14 +9,8 @@ public class Estagio {
     private String endereco;
     private String periodo;
 
-    // Adicione este construtor vazio
-    public Estagio() {
-        // Construtor vazio
-    }
 
-    // Mantenha o construtor com parâmetros
-    public Estagio(String local, int id, String supervisor, String horarios,
-                   String instituicao, String endereco, String periodo) {
+    public Estagio(String local,int id, String supervisor, String horarios, String instituicao, String endereco, String periodo) {
         this.local = local;
         this.id = id;
         this.supervisor = supervisor;

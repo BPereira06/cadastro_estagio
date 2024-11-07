@@ -1,8 +1,9 @@
 package org.example;
 
-import java.sql.*;
-import java.util.ArrayList;
-import java.util.List;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 
 public class AlunoDAO implements AutoCloseable {
 
@@ -39,17 +40,17 @@ public class AlunoDAO implements AutoCloseable {
             pstmt.setInt(1, matricula);
             try (ResultSet rs = pstmt.executeQuery()) {
                 if (rs.next()) {
-                    Aluno aluno = new Aluno();
-                    aluno.setNome(rs.getString("nome"));
-                    aluno.setMatricula(rs.getInt("matricula"));
-                    aluno.setEmail(rs.getString("email"));
-                    aluno.setCurso(rs.getString("curso"));
-                    aluno.setTelefone(rs.getString("telefone"));
-                    aluno.setDataNascimento(rs.getString("data_nascimento"));
-                    aluno.setTurno(rs.getString("turno"));
-                    aluno.setInstituicao(rs.getString("instituicao"));
-                    aluno.setObservacao(rs.getString("observacao"));
-                    return aluno;
+                    return new Aluno(
+                            rs.getString("nome"),
+                            rs.getInt("matricula"),
+                            rs.getString("email"),
+                            rs.getString("curso"),
+                            rs.getString("telefone"),
+                            rs.getString("data_nascimento"),
+                            rs.getString("turno"),
+                            rs.getString("instituicao"),
+                            rs.getString("observacao")
+                    );
                 }
             }
         } catch (SQLException e) {
@@ -89,32 +90,6 @@ public class AlunoDAO implements AutoCloseable {
         } catch (SQLException e) {
             throw new RuntimeException("Erro ao apagar aluno: " + e.getMessage(), e);
         }
-    }
-
-    public List<Aluno> listarTodos() {
-        List<Aluno> alunos = new ArrayList<>();
-        String sql = "SELECT * FROM Alunos";
-
-        try (Statement stmt = conexao.createStatement();
-             ResultSet rs = stmt.executeQuery(sql)) {
-
-            while (rs.next()) {
-                Aluno aluno = new Aluno();
-                aluno.setNome(rs.getString("nome"));
-                aluno.setMatricula(rs.getInt("matricula"));
-                aluno.setEmail(rs.getString("email"));
-                aluno.setCurso(rs.getString("curso"));
-                aluno.setTelefone(rs.getString("telefone"));
-                aluno.setDataNascimento(rs.getString("data_nascimento"));
-                aluno.setTurno(rs.getString("turno"));
-                aluno.setInstituicao(rs.getString("instituicao"));
-                aluno.setObservacao(rs.getString("observacao"));
-                alunos.add(aluno);
-            }
-        } catch (SQLException e) {
-            throw new RuntimeException("Erro ao listar alunos: " + e.getMessage(), e);
-        }
-        return alunos;
     }
 
     @Override

@@ -1,8 +1,9 @@
 package org.example;
 
-import java.sql.*;
-import java.util.ArrayList;
-import java.util.List;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 
 public class EstagioDAO implements AutoCloseable {
 
@@ -37,15 +38,15 @@ public class EstagioDAO implements AutoCloseable {
             pstmt.setInt(1, id);
             try (ResultSet rs = pstmt.executeQuery()) {
                 if (rs.next()) {
-                    Estagio estagio = new Estagio();
-                    estagio.setId(rs.getInt("id"));
-                    estagio.setLocal(rs.getString("local"));
-                    estagio.setSupervisor(rs.getString("supervisor"));
-                    estagio.setHorarios(rs.getString("horarios"));
-                    estagio.setInstituicao(rs.getString("instituicao"));
-                    estagio.setEndereco(rs.getString("endereco"));
-                    estagio.setPeriodo(rs.getString("periodo"));
-                    return estagio;
+                    return new Estagio(
+                            rs.getString("local"),
+                            rs.getInt("id"),
+                            rs.getString("supervisor"),
+                            rs.getString("horarios"),
+                            rs.getString("instituicao"),
+                            rs.getString("endereco"),
+                            rs.getString("periodo")
+                    );
                 }
             }
         } catch (SQLException e) {
@@ -83,32 +84,6 @@ public class EstagioDAO implements AutoCloseable {
         } catch (SQLException e) {
             throw new RuntimeException("Erro ao apagar estágio: " + e.getMessage(), e);
         }
-    }
-
-    public List<Estagio> obterTodosEstagios() {
-        List<Estagio> estagios = new ArrayList<>();
-        String sql = "SELECT * FROM Estagios";
-
-        try (PreparedStatement pstmt = conexao.prepareStatement(sql);
-             ResultSet rs = pstmt.executeQuery()) {
-
-            while (rs.next()) {
-                Estagio estagio = new Estagio();
-                estagio.setId(rs.getInt("id"));
-                estagio.setLocal(rs.getString("local"));
-                estagio.setSupervisor(rs.getString("supervisor"));
-                estagio.setHorarios(rs.getString("horarios"));
-                estagio.setInstituicao(rs.getString("instituicao"));
-                estagio.setEndereco(rs.getString("endereco"));
-                estagio.setPeriodo(rs.getString("periodo"));
-
-                estagios.add(estagio);
-            }
-        } catch (SQLException e) {
-            throw new RuntimeException("Erro ao obter estágios: " + e.getMessage(), e);
-        }
-
-        return estagios;
     }
 
     @Override
