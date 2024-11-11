@@ -11,6 +11,12 @@ public class Aluno {
     private String instituicao;
     private String observacao;
 
+    // Adicione este construtor vazio
+    public Aluno() {
+        // Construtor vazio
+    }
+
+    // Mantenha o construtor com parâmetros
     public Aluno(String nome, int matricula, String email, String curso, String telefone,
                  String dataNascimento, String turno, String instituicao, String observacao) {
         this.nome = nome;
@@ -24,7 +30,7 @@ public class Aluno {
         this.observacao = observacao;
     }
 
-
+    // Mantenha todos os getters e setters...
     public String getNome() {
         return nome;
     }
@@ -96,7 +102,6 @@ public class Aluno {
     public void setObservacao(String observacao) {
         this.observacao = observacao;
     }
-
 
     public void exibirInformacoes() {
         System.out.println("Nome: " + nome);

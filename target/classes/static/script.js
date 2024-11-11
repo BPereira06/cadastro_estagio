@@ -16,22 +16,6 @@ document.getElementById('estagios-tab').addEventListener('click', carregarEstagi
 
 // Funções para abrir os modais
 function abrirModalAluno(aluno = null) {
-    if (aluno) {
-        document.getElementById('alunoId').value = aluno.matricula;
-        document.getElementById('nome').value = aluno.nome;
-        document.getElementById('matricula').value = aluno.matricula;
-        document.getElementById('email').value = aluno.email;
-        document.getElementById('curso').value = aluno.curso;
-        document.getElementById('telefone').value = aluno.telefone;
-        document.getElementById('turno').value = aluno.turno;
-    } else {
-        document.getElementById('alunoForm').reset();
-        document.getElementById('alunoId').value = '';
-    }
-    alunoModal.show();
-}
-
-function abrirModalAluno(aluno = null) {
     const form = document.getElementById('alunoForm');
     if (aluno) {
         form.elements['alunoId'].value = aluno.matricula;
@@ -91,14 +75,9 @@ function salvarAluno() {
     })
     .then(response => {
         if (response.ok) {
-            // Fecha o modal usando Bootstrap
             const modal = bootstrap.Modal.getInstance(document.getElementById('alunoModal'));
             modal.hide();
-
-            // Limpa o formulário
             form.reset();
-
-            // Recarrega a lista de alunos
             carregarAlunos();
         } else {
             alert('Erro ao salvar aluno');
@@ -135,14 +114,9 @@ function salvarEstagio() {
     })
     .then(response => {
         if (response.ok) {
-            // Fecha o modal usando Bootstrap
             const modal = bootstrap.Modal.getInstance(document.getElementById('estagioModal'));
             modal.hide();
-
-            // Limpa o formulário
             form.reset();
-
-            // Recarrega a lista de estágios
             carregarEstagios();
         } else {
             alert('Erro ao salvar estágio');
@@ -180,78 +154,13 @@ function carregarAlunos() {
         });
 }
 
-function carregarEstagios() {
-    fetch('/api/estagios')
-        .then(response => response.json())
-        .then(estagios => {
-            const tbody = document.getElementById('estagiosTableBody');
-            tbody.innerHTML = '';
-            estagios.forEach(estagio => {
-                tbody.innerHTML += `
-                    <tr>
-                        <td>${estagio.id}</td>
-                        <td>${estagio.local}</td>
-                        <td>${estagio.supervisor}</td>
-                        <td>${estagio.horarios}</td>
-                        <td>${estagio.instituicao}</td>
-                        <td>${estagio.endereco}</td>
-                        <td>${estagio.periodo}</td>
-                        <td>${estagio.alunoMatricula}</td>
-                        <td>
-                            <button class="btn btn-sm btn-primary me-2" onclick='abrirModalEstagio(${JSON.stringify(estagio)})'>Editar</button>
-                            <button class="btn btn-sm btn-danger" onclick="excluirEstagio(${estagio.id})">Excluir</button>
-                        </td>
-                    </tr>
-                `;
-            });
-        });
-}
-
-// Funções para excluir alunos e estágios
-function excluirAluno(matricula) {
-    if (confirm('Tem certeza que deseja excluir este aluno?')) {
-        fetch(`/api/alunos/${matricula}`, {
-            method: 'DELETE',
-        })
-        .then(response => {
-            if (response.ok) {
-                carregarAlunos();
-            } else {
-                alert('Erro ao excluir aluno');
-            }
-        })
-        .catch((error) => {
-            console.error('Error:', error);
-        });
-    }
-}
-
-function excluirEstagio(id) {
-    if (confirm('Tem certeza que deseja excluir este estágio?')) {
-        fetch(`/api/estagios/${id}`, {
-            method: 'DELETE',
-        })
-        .then(response => {
-            if (response.ok) {
-                carregarEstagios();
-            } else {
-                alert('Erro ao excluir estágio');
-            }
-        })
-        .catch((error) => {
-            console.error('Error:', error);
-        });
-    }
-}
-
-// Função para buscar alunos
-function buscarAlunos() {
-    const termo = document.getElementById('buscarAlunoInput').value.toLowerCase();
+function filtrarAlunos() {
+    const termo = document.getElementById('buscarAluno').value.toLowerCase();
     const linhas = document.querySelectorAll('#alunosTableBody tr');
 
     linhas.forEach(linha => {
-        const texto = linha.textContent.toLowerCase();
-        if (texto.includes(termo)) {
+        const nomeAluno = linha.cells[1].textContent.toLowerCase(); // Assume que o nome está na segunda coluna
+        if (nomeAluno.includes(termo)) {
             linha.style.display = '';
         } else {
             linha.style.display = 'none';
@@ -259,9 +168,8 @@ function buscarAlunos() {
     });
 }
 
-// Função para buscar estágios
-function buscarEstagios() {
-    const termo = document.getElementById('buscarEstagioInput').value.toLowerCase();
+function filtrarEstagios() {
+    const termo = document.getElementById('buscarEstagio').value.toLowerCase();
     const linhas = document.querySelectorAll('#estagiosTableBody tr');
 
     linhas.forEach(linha => {
@@ -274,6 +182,124 @@ function buscarEstagios() {
     });
 }
 
-// Adicionar event listeners para os campos de busca
-document.getElementById('buscarAlunoInput').addEventListener('input', buscarAlunos);
-document.getElementById('buscarEstagioInput').addEventListener('input', buscarEstagios);
+function carregarEstagios() {
+    fetch('/api/estagios')
+        .then(response => response.json())
+        .then(estagios => {
+            const tbody = document.getElementById('estagiosTableBody');
+            tbody.innerHTML = '';
+
+            estagios.forEach(estagio => {
+                fetch(`/api/alunos/${estagio.alunoMatricula}`)
+                    .then(response => response.json())
+                    .then(aluno => {
+                        tbody.innerHTML += `
+                            <tr>
+                                <td>${estagio.id}</td>
+                                <td>${estagio.local}</td>
+                                <td>${estagio.supervisor}</td>
+                                <td>${estagio.horarios}</td>
+                                <td>${estagio.instituicao}</td>
+                                <td>${estagio.endereco}</td>
+                                <td>${estagio.periodo}</td>
+                                <td>${aluno ? aluno.nome : 'Aluno não encontrado'}</td>
+                                <td>
+                                    <button class="btn btn-sm btn-primary me-2" onclick='abrirModalEstagio(${JSON.stringify(estagio)})'>Editar</button>
+                                    <button class="btn btn-sm btn-danger" onclick="excluirEstagio(${estagio.id})">Excluir</button>
+                                </td>
+                            </tr>
+                        `;
+                    })
+                    .catch(error => {
+                                                console.error('Erro ao buscar dados do aluno:', error);
+                                                tbody.innerHTML += `
+                                                    <tr>
+                                                        <td>${estagio.id}</td>
+                                                        <td>${estagio.local}</td>
+                                                        <td>${estagio.supervisor}</td>
+                                                        <td>${estagio.horarios}</td>
+                                                        <td>${estagio.instituicao}</td>
+                                                        <td>${estagio.endereco}</td>
+                                                        <td>${estagio.periodo}</td>
+                                                        <td>Erro ao carregar aluno</td>
+                                                        <td>
+                                                            <button class="btn btn-sm btn-primary me-2" onclick='abrirModalEstagio(${JSON.stringify(estagio)})'>Editar</button>
+                                                            <button class="btn btn-sm btn-danger" onclick="excluirEstagio(${estagio.id})">Excluir</button>
+                                                        </td>
+                                                    </tr>
+                                                `;
+                                            });
+                                    });
+                                });
+                        }
+
+                        // Funções para excluir alunos e estágios
+                        function excluirAluno(matricula) {
+                            if (confirm('Tem certeza que deseja excluir este aluno?')) {
+                                fetch(`/api/alunos/${matricula}`, {
+                                    method: 'DELETE',
+                                })
+                                .then(response => {
+                                    if (response.ok) {
+                                        carregarAlunos();
+                                    } else {
+                                        alert('Erro ao excluir aluno');
+                                    }
+                                })
+                                .catch((error) => {
+                                    console.error('Error:', error);
+                                });
+                            }
+                        }
+
+                        function excluirEstagio(id) {
+                            if (confirm('Tem certeza que deseja excluir este estágio?')) {
+                                fetch(`/api/estagios/${id}`, {
+                                    method: 'DELETE',
+                                })
+                                .then(response => {
+                                    if (response.ok) {
+                                        carregarEstagios();
+                                    } else {
+                                        alert('Erro ao excluir estágio');
+                                    }
+                                })
+                                .catch((error) => {
+                                    console.error('Error:', error);
+                                });
+                            }
+                        }
+
+                        // Função para buscar alunos
+                        function buscarAlunos() {
+                            const termo = document.getElementById('buscarAlunoInput').value.toLowerCase();
+                            const linhas = document.querySelectorAll('#alunosTableBody tr');
+
+                            linhas.forEach(linha => {
+                                const texto = linha.textContent.toLowerCase();
+                                if (texto.includes(termo)) {
+                                    linha.style.display = '';
+                                } else {
+                                    linha.style.display = 'none';
+                                }
+                            });
+                        }
+
+                        // Função para buscar estágios
+                        function buscarEstagios() {
+                            const termo = document.getElementById('buscarEstagioInput').value.toLowerCase();
+                            const linhas = document.querySelectorAll('#estagiosTableBody tr');
+
+                            linhas.forEach(linha => {
+                                const texto = linha.textContent.toLowerCase();
+                                if (texto.includes(termo)) {
+                                    linha.style.display = '';
+                                } else {
+                                    linha.style.display = 'none';
+                                }
+                            });
+                        }
+
+                        // Adicionar event listeners para os campos de busca
+                        document.getElementById('buscarAlunoInput').addEventListener('input', buscarAlunos);
+                        document.getElementById('buscarEstagioInput').addEventListener('input', buscarEstagios);

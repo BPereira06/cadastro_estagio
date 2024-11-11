@@ -1,9 +1,8 @@
 package org.example;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
 
 public class EstagioDAO implements AutoCloseable {
 
@@ -38,15 +37,15 @@ public class EstagioDAO implements AutoCloseable {
             pstmt.setInt(1, id);
             try (ResultSet rs = pstmt.executeQuery()) {
                 if (rs.next()) {
-                    return new Estagio(
-                            rs.getString("local"),
-                            rs.getInt("id"),
-                            rs.getString("supervisor"),
-                            rs.getString("horarios"),
-                            rs.getString("instituicao"),
-                            rs.getString("endereco"),
-                            rs.getString("periodo")
-                    );
+                    Estagio estagio = new Estagio();
+                    estagio.setId(rs.getInt("id"));
+                    estagio.setLocal(rs.getString("local"));
+                    estagio.setSupervisor(rs.getString("supervisor"));
+                    estagio.setHorarios(rs.getString("horarios"));
+                    estagio.setInstituicao(rs.getString("instituicao"));
+                    estagio.setEndereco(rs.getString("endereco"));
+                    estagio.setPeriodo(rs.getString("periodo"));
+                    return estagio;
                 }
             }
         } catch (SQLException e) {
@@ -84,6 +83,32 @@ public class EstagioDAO implements AutoCloseable {
         } catch (SQLException e) {
             throw new RuntimeException("Erro ao apagar estágio: " + e.getMessage(), e);
         }
+    }
+
+    public List<Estagio> obterTodosEstagios() {
+        List<Estagio> estagios = new ArrayList<>();
+        String sql = "SELECT * FROM Estagios";
+        try (Connection conn = BancoDeDados.conectar();
+             PreparedStatement pstmt = conn.prepareStatement(sql);
+             ResultSet rs = pstmt.executeQuery()) {
+
+            while (rs.next()) {
+                Estagio estagio = new Estagio(
+                        rs.getInt("id"),
+                        rs.getString("local"),
+                        rs.getString("supervisor"),
+                        rs.getString("horarios"),
+                        rs.getString("instituicao"),
+                        rs.getString("endereco"),
+                        rs.getString("periodo"),
+                        rs.getInt("aluno_matricula")
+                );
+                estagios.add(estagio);
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Erro ao obter estágios: " + e.getMessage(), e);
+        }
+        return estagios;
     }
 
     @Override

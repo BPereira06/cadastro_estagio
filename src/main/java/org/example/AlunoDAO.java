@@ -1,9 +1,8 @@
 package org.example;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
 
 public class AlunoDAO implements AutoCloseable {
 
@@ -32,6 +31,34 @@ public class AlunoDAO implements AutoCloseable {
         } catch (SQLException e) {
             throw new RuntimeException("Erro ao inserir aluno: " + e.getMessage(), e);
         }
+    }
+
+    public List<Aluno> listarTodos() {
+        List<Aluno> alunos = new ArrayList<>();
+        String sql = "SELECT * FROM Alunos";
+
+        try (PreparedStatement pstmt = conexao.prepareStatement(sql);
+             ResultSet rs = pstmt.executeQuery()) {
+
+            while (rs.next()) {
+                Aluno aluno = new Aluno(
+                        rs.getString("nome"),
+                        rs.getInt("matricula"),
+                        rs.getString("email"),
+                        rs.getString("curso"),
+                        rs.getString("telefone"),
+                        rs.getString("data_nascimento"),
+                        rs.getString("turno"),
+                        rs.getString("instituicao"),
+                        rs.getString("observacao")
+                );
+                alunos.add(aluno);
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Erro ao listar alunos: " + e.getMessage(), e);
+        }
+
+        return alunos;
     }
 
     public Aluno obterAlunoPorMatricula(int matricula) {
