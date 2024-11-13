@@ -25,6 +25,7 @@ function abrirModalAluno(aluno = null) {
         form.elements['curso'].value = aluno.curso;
         form.elements['telefone'].value = aluno.telefone;
         form.elements['turno'].value = aluno.turno;
+        form.elements['observacao'].value = aluno.observacao; // Preencher o campo de observação
     } else {
         form.reset();
         form.elements['alunoId'].value = '';
@@ -59,25 +60,31 @@ function salvarAluno() {
         email: form.elements['email'].value,
         curso: form.elements['curso'].value,
         telefone: form.elements['telefone'].value,
-        turno: form.elements['turno'].value
+        turno: form.elements['turno'].value,
+        observacao: form.elements['observacao'].value // Adicionando o campo de observação
     };
 
     const id = form.elements['alunoId'].value;
-    const method = id ? 'PUT' : 'POST';
-    const url = id ? `/api/alunos/${id}` : '/api/alunos';
+    const method = id ? 'PUT' : 'POST'; // Se id existir, é uma atualização, caso contrário é uma criação
+    const url = id ? `/api/alunos/${id}` : '/api/alunos'; // URL para a API
 
     fetch(url, {
         method: method,
         headers: {
             'Content-Type': 'application/json',
         },
-        body: JSON.stringify(aluno),
+        body: JSON.stringify(aluno), // Enviando o objeto aluno como JSON
     })
     .then(response => {
         if (response.ok) {
+            // Fecha o modal usando Bootstrap
             const modal = bootstrap.Modal.getInstance(document.getElementById('alunoModal'));
             modal.hide();
+
+            // Limpa o formulário
             form.reset();
+
+            // Recarrega a lista de alunos
             carregarAlunos();
         } else {
             alert('Erro ao salvar aluno');
@@ -144,6 +151,7 @@ function carregarAlunos() {
                         <td>${aluno.curso}</td>
                         <td>${aluno.telefone}</td>
                         <td>${aluno.turno}</td>
+                        <td>${aluno.observacao || ''}</td> <!-- Adicionando a observação -->
                         <td>
                             <button class="btn btn-sm btn-primary" onclick='abrirModalAluno(${JSON.stringify(aluno)})'>Editar</button>
                             <button class="btn btn-sm btn-danger" onclick="excluirAluno(${aluno.matricula})">Excluir</button>
